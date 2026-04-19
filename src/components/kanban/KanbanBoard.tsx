@@ -70,6 +70,11 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
             }
             if (payload.eventType === "UPDATE") {
               const t = payload.new as Task;
+              const prevTask = prev.find((x) => x.id === t.id);
+              if (prevTask && prevTask.status !== "done" && t.status === "done") {
+                celebrate();
+                toast.success("🎉 Task complete!");
+              }
               return prev.map((x) => (x.id === t.id ? t : x)).sort((a, b) => a.position - b.position);
             }
             if (payload.eventType === "DELETE") {
