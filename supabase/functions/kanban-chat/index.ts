@@ -25,6 +25,25 @@ Rules:
 - For dates, use ISO 8601 format (YYYY-MM-DD).
 - When the user marks something done or you move it to done, celebrate with 🎉.`;
 
+const recurrenceSchema = {
+  type: "object",
+  description: "Recurring rule for the task. Omit or pass null for one-off tasks.",
+  properties: {
+    freq: { type: "string", enum: ["daily", "weekly", "monthly", "yearly"] },
+    interval: { type: "number", description: "Every N units (default 1)" },
+    byweekday: {
+      type: "array",
+      items: { type: "number" },
+      description: "For weekly: weekdays as numbers (0=Sun..6=Sat).",
+    },
+    endType: { type: "string", enum: ["never", "on", "after"] },
+    endDate: { type: "string", description: "ISO date YYYY-MM-DD when endType=on" },
+    count: { type: "number", description: "Remaining occurrences when endType=after" },
+  },
+  required: ["freq", "interval"],
+  additionalProperties: false,
+};
+
 const tools = [
   {
     type: "function",
@@ -40,6 +59,8 @@ const tools = [
           priority: { type: "string", enum: ["low", "medium", "high"] },
           tags: { type: "array", items: { type: "string" } },
           due_date: { type: "string", description: "ISO date YYYY-MM-DD or null" },
+          estimated_minutes: { type: "number", description: "Estimated duration in minutes" },
+          recurrence: recurrenceSchema,
         },
         required: ["title"],
         additionalProperties: false,
@@ -50,7 +71,7 @@ const tools = [
     type: "function",
     function: {
       name: "update_task",
-      description: "Update fields of an existing task. Use this to edit ANY field of an existing task: title, description, status, priority, tags, or due_date.",
+      description: "Update fields of an existing task. Use this to edit ANY field of an existing task: title, description, status, priority, tags, due_date, estimated_minutes, or recurrence.",
       parameters: {
         type: "object",
         properties: {
@@ -61,6 +82,8 @@ const tools = [
           priority: { type: "string", enum: ["low", "medium", "high"] },
           tags: { type: "array", items: { type: "string" } },
           due_date: { type: "string" },
+          estimated_minutes: { type: "number" },
+          recurrence: recurrenceSchema,
         },
         required: ["id"],
         additionalProperties: false,
