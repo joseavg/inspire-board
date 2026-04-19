@@ -152,20 +152,76 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
     );
 
     const movedToDone = destStatus === "done" && activeTaskItem.status !== "done";
+    const movedToInProgress = destStatus === "in_progress" && activeTaskItem.status !== "in_progress";
+    const movedAwayFromDone = activeTaskItem.status === "done" && destStatus !== "done";
+
+    // Build update payload — track timing transitions
+    const update: Record<string, unknown> = { status: destStatus, position: newPos };
+    let computedActual: number | null = null;
+    if (movedToInProgress && !activeTaskItem.started_at) {
+      update.started_at = new Date().toISOString();
+    }
+    if (movedToDone) {
+      const now = new Date();
+      update.completed_at = now.toISOString();
+      const startMs = activeTaskItem.started_at ? new Date(activeTaskItem.started_at).getTime() : null;
+      if (startMs) {
+        computedActual = Math.max(1, Math.round((now.getTime() - startMs) / 60000));
+        update.actual_minutes = computedActual;
+      }
+    }
+    if (movedAwayFromDone) {
+      update.completed_at = null;
+    }
 
     const { error } = await supabase
       .from("tasks")
-      .update({ status: destStatus, position: newPos })
+      .update(update)
       .eq("id", activeId);
     if (error) {
       toast.error("Could not save change");
-    } else {
-      if (movedToDone) {
-        celebrate();
-        toast.success("🎉 Nice work — task complete!");
-      }
-      onBoardChange?.();
+      return;
     }
+
+    if (movedToDone) {
+      celebrate();
+      const timeMsg = computedActual ? ` (took ${computedActual}m)` : "";
+      toast.success(`🎉 Nice work — task complete!${timeMsg}`);
+      // If recurring, spawn the next occurrence
+      if (activeTaskItem.recurrence && activeTaskItem.due_date) {
+        await spawnNextOccurrence(activeTaskItem);
+      }
+    }
+    onBoardChange?.();
+  };
+
+  const spawnNextOccurrence = async (task: Task) => {
+    if (!task.recurrence || !task.due_date) return;
+    const next = nextOccurrence(new Date(task.due_date), task.recurrence);
+    if (!next) {
+      toast.info("🔁 Recurring series finished");
+      return;
+    }
+    // Decrement count if endType=after
+    let nextRule: Recurrence = task.recurrence;
+    if (nextRule.endType === "after" && nextRule.count) {
+      nextRule = { ...nextRule, count: nextRule.count - 1 };
+    }
+    const colTasks = tasksByColumn["todo"];
+    const lastPos = colTasks[colTasks.length - 1]?.position ?? 0;
+    const { error } = await supabase.from("tasks").insert({
+      user_id: userId,
+      title: task.title,
+      description: task.description,
+      status: "todo",
+      priority: task.priority,
+      tags: task.tags,
+      due_date: next.toISOString(),
+      estimated_minutes: task.estimated_minutes,
+      recurrence: (nextRule as unknown) as never,
+      position: lastPos + 1000,
+    });
+    if (!error) toast.success("🔁 Next occurrence scheduled");
   };
 
   const openNew = (status: TaskStatus) => {
