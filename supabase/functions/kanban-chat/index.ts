@@ -118,6 +118,8 @@ async function executeTool(name: string, args: any, supabase: any, userId: strin
           priority: args.priority ?? "medium",
           tags: args.tags ?? [],
           due_date: args.due_date ?? null,
+          estimated_minutes: args.estimated_minutes ?? null,
+          recurrence: args.recurrence ?? null,
         })
         .select()
         .single();
