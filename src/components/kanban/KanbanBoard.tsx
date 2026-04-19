@@ -64,12 +64,12 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
         (payload) => {
           setTasks((prev) => {
             if (payload.eventType === "INSERT") {
-              const t = payload.new as Task;
+              const t = (payload.new as unknown) as Task;
               if (prev.some((x) => x.id === t.id)) return prev;
               return [...prev, t].sort((a, b) => a.position - b.position);
             }
             if (payload.eventType === "UPDATE") {
-              const t = payload.new as Task;
+              const t = (payload.new as unknown) as Task;
               const prevTask = prev.find((x) => x.id === t.id);
               if (prevTask && prevTask.status !== "done" && t.status === "done") {
                 celebrate();
@@ -78,7 +78,7 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
               return prev.map((x) => (x.id === t.id ? t : x)).sort((a, b) => a.position - b.position);
             }
             if (payload.eventType === "DELETE") {
-              const t = payload.old as Task;
+              const t = (payload.old as unknown) as Task;
               return prev.filter((x) => x.id !== t.id);
             }
             return prev;
