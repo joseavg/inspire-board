@@ -253,14 +253,28 @@ export function ChatAssistant({ onTasksChanged }: Props) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
-              placeholder="Ask, or tell me what to change…"
+              placeholder={recording ? "Listening… 🎙️" : transcribing ? "Transcribing…" : "Ask, type or speak…"}
               rows={1}
+              disabled={transcribing}
               className="resize-none min-h-[42px] max-h-32 bg-secondary/50 border-border focus-visible:ring-accent"
             />
             <Button
               size="icon"
+              onClick={recording ? stopRecording : startRecording}
+              disabled={loading || transcribing}
+              variant={recording ? "destructive" : "secondary"}
+              className={cn(
+                "h-10 w-10 shrink-0 transition-spring",
+                recording && "animate-pulse"
+              )}
+              aria-label={recording ? "Stop recording" : "Start voice input"}
+            >
+              {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button
+              size="icon"
               onClick={send}
-              disabled={loading || !input.trim()}
+              disabled={loading || !input.trim() || recording || transcribing}
               className="h-10 w-10 gradient-accent text-accent-foreground border-0 shrink-0 disabled:opacity-50"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
