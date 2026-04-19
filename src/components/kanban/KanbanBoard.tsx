@@ -156,7 +156,13 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
     const movedAwayFromDone = activeTaskItem.status === "done" && destStatus !== "done";
 
     // Build update payload — track timing transitions
-    const update: Record<string, unknown> = { status: destStatus, position: newPos };
+    const update: {
+      status: TaskStatus;
+      position: number;
+      started_at?: string;
+      completed_at?: string | null;
+      actual_minutes?: number;
+    } = { status: destStatus, position: newPos };
     let computedActual: number | null = null;
     if (movedToInProgress && !activeTaskItem.started_at) {
       update.started_at = new Date().toISOString();
