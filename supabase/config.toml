@@ -1,1 +1,4 @@
 project_id = "nccrxcwawsrdicnfsdhd"
+
+[functions.kanban-chat]
+verify_jwt = true
