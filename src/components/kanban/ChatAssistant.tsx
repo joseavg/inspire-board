@@ -19,7 +19,7 @@ export function ChatAssistant({ onTasksChanged }: Props) {
     {
       role: "assistant",
       content:
-        "Hi! I'm your board assistant. Ask me anything, or tell me what to do — like *“add 3 tasks for launch prep”* or *“move the design task to In Progress”*.",
+        "Hey there! ✨ I'm your board assistant. Ask me anything, or tell me what to do — like *“add 3 tasks for launch prep 🚀”*, *“edit the design task to high priority”*, or *“mark the bug fix as done ✅”*.",
     },
   ]);
   const [input, setInput] = useState("");

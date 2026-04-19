@@ -36,15 +36,15 @@ const Index = () => {
   const initial = (user.email ?? "U").charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-surface/80 backdrop-blur-md">
+    <div className="min-h-screen flex flex-col">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-surface/70 backdrop-blur-xl">
         <div className="flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-lg gradient-accent grid place-items-center shadow-glow">
               <LayoutGrid className="h-5 w-5 text-accent-foreground" />
             </div>
             <div>
-              <h1 className="text-base font-semibold tracking-tight leading-none">Flowboard</h1>
+              <h1 className="text-base font-semibold tracking-tight leading-none text-gradient-accent">Flowboard</h1>
               <p className="text-[11px] text-muted-foreground mt-0.5 leading-none">Your personal Kanban</p>
             </div>
           </div>

@@ -73,6 +73,8 @@
     --gradient-hero: linear-gradient(135deg, hsl(250 95% 65%) 0%, hsl(280 85% 65%) 50%, hsl(220 90% 60%) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(220 33% 99%) 0%, hsl(220 33% 96%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(250 95% 65%), hsl(220 90% 60%));
+    --gradient-canvas: radial-gradient(1200px 600px at 0% 0%, hsl(250 100% 96%) 0%, transparent 60%), radial-gradient(900px 500px at 100% 0%, hsl(330 100% 96%) 0%, transparent 55%), radial-gradient(800px 600px at 50% 100%, hsl(200 100% 95%) 0%, transparent 55%), hsl(220 33% 98%);
+    --gradient-success: linear-gradient(135deg, hsl(152 76% 50%), hsl(170 80% 45%));
 
     --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.04);
     --shadow-card: 0 1px 3px hsl(222 47% 11% / 0.04), 0 4px 16px -4px hsl(222 47% 11% / 0.06);
@@ -124,7 +126,9 @@
   * { @apply border-border; }
   html, body, #root { height: 100%; }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: var(--gradient-canvas);
+    background-attachment: fixed;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
@@ -135,6 +139,14 @@
   .gradient-hero { background: var(--gradient-hero); }
   .gradient-soft { background: var(--gradient-soft); }
   .gradient-accent { background: var(--gradient-accent); }
+  .gradient-success { background: var(--gradient-success); }
+  .gradient-canvas { background: var(--gradient-canvas); }
+  .text-gradient-accent {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-lifted { box-shadow: var(--shadow-lifted); }
   .shadow-glow { box-shadow: var(--shadow-glow); }

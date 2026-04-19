@@ -16,6 +16,7 @@ export function TaskCard({ task, onClick, isDragging, isOverlay }: Props) {
   const overdue = due && isPast(due) && !isToday(due);
   const today = due && isToday(due);
   const priority = PRIORITY_STYLES[task.priority];
+  const isDone = task.status === "done";
 
   return (
     <button
@@ -24,6 +25,7 @@ export function TaskCard({ task, onClick, isDragging, isOverlay }: Props) {
       className={cn(
         "group relative w-full text-left rounded-xl bg-surface border border-border/70 p-4 shadow-card hover:shadow-lifted hover:-translate-y-0.5 transition-spring",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
+        isDone && "bg-success/5 border-success/30",
         isDragging && !isOverlay && "opacity-40",
         isOverlay && "shadow-lifted rotate-2 scale-105 cursor-grabbing"
       )}
@@ -32,7 +34,7 @@ export function TaskCard({ task, onClick, isDragging, isOverlay }: Props) {
       <span className={cn("absolute left-0 top-3 bottom-3 w-1 rounded-r-full", priority.dot)} />
 
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-sm leading-snug text-foreground line-clamp-2">{task.title}</h3>
+        <h3 className={cn("font-semibold text-sm leading-snug text-foreground line-clamp-2", isDone && "line-through text-muted-foreground")}>{task.title}</h3>
         <span className={cn("shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide", priority.chip)}>
           <span className={cn("h-1.5 w-1.5 rounded-full", priority.dot)} />
           {priority.label}

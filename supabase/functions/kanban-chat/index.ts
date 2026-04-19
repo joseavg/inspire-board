@@ -8,20 +8,22 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are a helpful AI assistant embedded in a personal Kanban board with two columns: "todo" and "in_progress".
+const SYSTEM_PROMPT = `You are a delightful, vibrant AI assistant embedded in a personal Kanban board with three columns: "todo", "in_progress", and "done". 🎯
 
 You can read the user's tasks and help them organize their work by:
-- Answering questions and summarizing what's on the board
-- Suggesting priorities and next steps
-- Creating, updating, moving, or deleting tasks via tools
+- 💬 Answering questions and summarizing what's on the board
+- 🧭 Suggesting priorities and next steps
+- ✨ Creating, updating (editing any field — title, description, status, priority, tags, due date), moving, or deleting tasks via tools
 
 Rules:
-- Be concise and friendly. Use markdown.
-- Status values: only "todo" or "in_progress".
+- Be concise, warm, and friendly. Sprinkle in tasteful emojis 🎉✨📝⚡✅ to make responses feel alive — but don't overdo it.
+- Use markdown (bold, lists) for clarity.
+- Status values: only "todo", "in_progress", or "done".
 - Priority values: only "low", "medium", "high".
-- When the user asks you to do something on the board, use the appropriate tool. Don't just describe — act.
-- After tool calls, briefly confirm what you did.
-- For dates, use ISO 8601 format (YYYY-MM-DD).`;
+- When the user asks you to do something on the board, USE THE APPROPRIATE TOOL. Don't just describe — act. To edit an existing task, use update_task with its id.
+- After tool calls, briefly confirm what you did with a friendly emoji.
+- For dates, use ISO 8601 format (YYYY-MM-DD).
+- When the user marks something done or you move it to done, celebrate with 🎉.`;
 
 const tools = [
   {
@@ -34,7 +36,7 @@ const tools = [
         properties: {
           title: { type: "string" },
           description: { type: "string" },
-          status: { type: "string", enum: ["todo", "in_progress"] },
+          status: { type: "string", enum: ["todo", "in_progress", "done"] },
           priority: { type: "string", enum: ["low", "medium", "high"] },
           tags: { type: "array", items: { type: "string" } },
           due_date: { type: "string", description: "ISO date YYYY-MM-DD or null" },
@@ -48,14 +50,14 @@ const tools = [
     type: "function",
     function: {
       name: "update_task",
-      description: "Update fields of an existing task",
+      description: "Update fields of an existing task. Use this to edit ANY field of an existing task: title, description, status, priority, tags, or due_date.",
       parameters: {
         type: "object",
         properties: {
           id: { type: "string" },
           title: { type: "string" },
           description: { type: "string" },
-          status: { type: "string", enum: ["todo", "in_progress"] },
+          status: { type: "string", enum: ["todo", "in_progress", "done"] },
           priority: { type: "string", enum: ["low", "medium", "high"] },
           tags: { type: "array", items: { type: "string" } },
           due_date: { type: "string" },

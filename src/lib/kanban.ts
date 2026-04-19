@@ -1,4 +1,4 @@
-export type TaskStatus = "todo" | "in_progress";
+export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
 
 export interface Task {
@@ -15,9 +15,10 @@ export interface Task {
   updated_at: string;
 }
 
-export const COLUMNS: { id: TaskStatus; title: string; accent: string }[] = [
-  { id: "todo", title: "To-do", accent: "bg-accent" },
-  { id: "in_progress", title: "In Progress", accent: "bg-warning" },
+export const COLUMNS: { id: TaskStatus; title: string; accent: string; gradient: string; emoji: string }[] = [
+  { id: "todo", title: "To-do", accent: "bg-tag-2", gradient: "from-[hsl(var(--tag-2)/0.18)] to-transparent", emoji: "📝" },
+  { id: "in_progress", title: "In Progress", accent: "bg-warning", gradient: "from-[hsl(var(--warning)/0.20)] to-transparent", emoji: "⚡" },
+  { id: "done", title: "Done", accent: "bg-success", gradient: "from-[hsl(var(--success)/0.20)] to-transparent", emoji: "✅" },
 ];
 
 export const PRIORITY_STYLES: Record<TaskPriority, { label: string; dot: string; chip: string }> = {
