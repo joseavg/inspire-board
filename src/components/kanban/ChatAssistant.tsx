@@ -8,6 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Msg = { role: "user" | "assistant"; content: string };
+type TranscriptionResponse = {
+  text?: string;
+  error?: string;
+  code?: string;
+  fallback?: boolean;
+};
 
 interface Props {
   onTasksChanged?: () => void;
@@ -101,7 +107,6 @@ export function ChatAssistant({ onTasksChanged }: Props) {
           }
         }
       }
-      // Refresh board in case the assistant modified tasks
       onTasksChanged?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong");
@@ -144,9 +149,21 @@ export function ChatAssistant({ onTasksChanged }: Props) {
             body: { audio: base64, mimeType: mr.mimeType || "audio/webm" },
           });
           if (error) throw error;
-          const text = (data as { text?: string })?.text?.trim();
-          if (text) setInput((p) => (p ? p + " " : "") + text);
-          else toast.info("Didn't catch that — try again");
+
+          const result = (data ?? {}) as TranscriptionResponse;
+          const text = result.text?.trim();
+
+          if (text) {
+            setInput((p) => (p ? p + " " : "") + text);
+            return;
+          }
+
+          if (result.error) {
+            toast.error(result.error);
+            return;
+          }
+
+          toast.info("Didn't catch that — try again");
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Transcription failed");
         } finally {
