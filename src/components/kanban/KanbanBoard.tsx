@@ -11,7 +11,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
-import { COLUMNS, type Task, type TaskStatus } from "@/lib/kanban";
+import { COLUMNS, nextOccurrence, type Recurrence, type Task, type TaskStatus } from "@/lib/kanban";
 import { celebrate } from "@/lib/confetti";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
