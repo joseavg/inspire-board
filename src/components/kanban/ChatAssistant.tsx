@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Sparkles, Send, X, Loader2, Bot, User as UserIcon } from "lucide-react";
+import { Sparkles, Send, X, Loader2, Bot, User as UserIcon, Mic, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
