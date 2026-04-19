@@ -12,6 +12,7 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
 import { COLUMNS, type Task, type TaskStatus } from "@/lib/kanban";
+import { celebrate } from "@/lib/confetti";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 import { TaskDialog, type TaskFormValues } from "./TaskDialog";
@@ -84,8 +85,10 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
   }, [userId]);
 
   const tasksByColumn = useMemo(() => {
-    const map: Record<TaskStatus, Task[]> = { todo: [], in_progress: [] };
-    for (const t of tasks) map[t.status].push(t);
+    const map: Record<TaskStatus, Task[]> = { todo: [], in_progress: [], done: [] };
+    for (const t of tasks) {
+      if (map[t.status]) map[t.status].push(t);
+    }
     for (const k of Object.keys(map) as TaskStatus[]) {
       map[k].sort((a, b) => a.position - b.position);
     }
@@ -113,7 +116,7 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
     // Determine destination column
     let destStatus: TaskStatus = activeTaskItem.status;
     let destIndex = -1;
-    if (overId === "todo" || overId === "in_progress") {
+    if (overId === "todo" || overId === "in_progress" || overId === "done") {
       destStatus = overId as TaskStatus;
       destIndex = tasksByColumn[destStatus].length;
     } else {
@@ -143,6 +146,8 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
       prev.map((t) => (t.id === activeId ? { ...t, status: destStatus, position: newPos } : t))
     );
 
+    const movedToDone = destStatus === "done" && activeTaskItem.status !== "done";
+
     const { error } = await supabase
       .from("tasks")
       .update({ status: destStatus, position: newPos })
@@ -150,6 +155,10 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
     if (error) {
       toast.error("Could not save change");
     } else {
+      if (movedToDone) {
+        celebrate();
+        toast.success("🎉 Nice work — task complete!");
+      }
       onBoardChange?.();
     }
   };
@@ -195,7 +204,7 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-5">
         {COLUMNS.map((c) => (
           <div key={c.id} className="rounded-2xl bg-column border border-border/60 p-4 h-[420px] animate-pulse-soft" />
         ))}
@@ -205,13 +214,15 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-5 h-full">
         {COLUMNS.map((col) => (
           <KanbanColumn
             key={col.id}
             id={col.id}
             title={col.title}
             accent={col.accent}
+            gradient={col.gradient}
+            emoji={col.emoji}
             tasks={tasksByColumn[col.id]}
             onAdd={() => openNew(col.id)}
             onTaskClick={openEdit}

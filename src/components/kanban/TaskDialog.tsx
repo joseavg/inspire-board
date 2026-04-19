@@ -105,8 +105,9 @@ export function TaskDialog({ open, onOpenChange, initialStatus = "todo", task, o
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">To-do</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="todo">📝 To-do</SelectItem>
+                  <SelectItem value="in_progress">⚡ In Progress</SelectItem>
+                  <SelectItem value="done">✅ Done</SelectItem>
                 </SelectContent>
               </Select>
             </div>
