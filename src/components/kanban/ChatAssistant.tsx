@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Sparkles, Send, X, Loader2, Bot, User as UserIcon } from "lucide-react";
+import { Sparkles, Send, X, Loader2, Bot, User as UserIcon, Mic, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +24,12 @@ export function ChatAssistant({ onTasksChanged }: Props) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -110,6 +115,55 @@ export function ChatAssistant({ onTasksChanged }: Props) {
       e.preventDefault();
       send();
     }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
+      const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        if (blob.size === 0) { setTranscribing(false); return; }
+        try {
+          setTranscribing(true);
+          const buf = await blob.arrayBuffer();
+          const bytes = new Uint8Array(buf);
+          let bin = "";
+          const chunk = 0x8000;
+          for (let i = 0; i < bytes.length; i += chunk) {
+            bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+          }
+          const base64 = btoa(bin);
+          const { data, error } = await supabase.functions.invoke("transcribe-voice", {
+            body: { audio: base64, mimeType: mr.mimeType || "audio/webm" },
+          });
+          if (error) throw error;
+          const text = (data as { text?: string })?.text?.trim();
+          if (text) setInput((p) => (p ? p + " " : "") + text);
+          else toast.info("Didn't catch that — try again");
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Transcription failed");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch {
+      toast.error("Microphone access denied");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
   };
 
   return (
@@ -199,14 +253,28 @@ export function ChatAssistant({ onTasksChanged }: Props) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
-              placeholder="Ask, or tell me what to change…"
+              placeholder={recording ? "Listening… 🎙️" : transcribing ? "Transcribing…" : "Ask, type or speak…"}
               rows={1}
+              disabled={transcribing}
               className="resize-none min-h-[42px] max-h-32 bg-secondary/50 border-border focus-visible:ring-accent"
             />
             <Button
               size="icon"
+              onClick={recording ? stopRecording : startRecording}
+              disabled={loading || transcribing}
+              variant={recording ? "destructive" : "secondary"}
+              className={cn(
+                "h-10 w-10 shrink-0 transition-spring",
+                recording && "animate-pulse"
+              )}
+              aria-label={recording ? "Stop recording" : "Start voice input"}
+            >
+              {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button
+              size="icon"
               onClick={send}
-              disabled={loading || !input.trim()}
+              disabled={loading || !input.trim() || recording || transcribing}
               className="h-10 w-10 gradient-accent text-accent-foreground border-0 shrink-0 disabled:opacity-50"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
