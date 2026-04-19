@@ -11,6 +11,8 @@ interface ColumnProps {
   id: TaskStatus;
   title: string;
   accent: string;
+  gradient: string;
+  emoji: string;
   tasks: Task[];
   onAdd: () => void;
   onTaskClick: (task: Task) => void;
@@ -32,29 +34,34 @@ function SortableTask({ task, onClick }: { task: Task; onClick: () => void }) {
   );
 }
 
-export function KanbanColumn({ id, title, accent, tasks, onAdd, onTaskClick }: ColumnProps) {
+export function KanbanColumn({ id, title, accent, gradient, emoji, tasks, onAdd, onTaskClick }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id, data: { type: "column", status: id } });
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-col rounded-2xl bg-column border border-border/60 p-3 transition-base min-h-[200px]",
-        isOver && "border-accent/60 ring-2 ring-accent/20"
+        "relative flex flex-col rounded-2xl bg-column border border-border/60 p-3 transition-spring min-h-[200px] overflow-hidden",
+        "before:absolute before:inset-0 before:bg-gradient-to-b before:pointer-events-none before:opacity-100",
+        `before:${gradient}`,
+        isOver && "border-accent/70 ring-2 ring-accent/30 scale-[1.01] shadow-lifted"
       )}
     >
-      <div className="flex items-center justify-between px-2 py-1.5">
+      {/* Top color bar */}
+      <div className={cn("absolute top-0 left-0 right-0 h-1", accent)} />
+
+      <div className="relative flex items-center justify-between px-2 py-1.5">
         <div className="flex items-center gap-2">
-          <span className={cn("h-2 w-2 rounded-full", accent)} />
+          <span className="text-base leading-none">{emoji}</span>
           <h2 className="font-semibold text-sm">{title}</h2>
-          <span className="text-xs text-muted-foreground bg-surface rounded-full px-2 py-0.5 border border-border/60">{tasks.length}</span>
+          <span className={cn("text-xs rounded-full px-2 py-0.5 font-semibold text-white shadow-sm", accent)}>{tasks.length}</span>
         </div>
         <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-surface" onClick={onAdd} aria-label={`Add task to ${title}`}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="flex-1 mt-2 space-y-2.5 overflow-y-auto scrollbar-thin px-1 pb-1">
+      <div className="relative flex-1 mt-2 space-y-2.5 overflow-y-auto scrollbar-thin px-1 pb-1">
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <SortableTask key={task.id} task={task} onClick={() => onTaskClick(task)} />
