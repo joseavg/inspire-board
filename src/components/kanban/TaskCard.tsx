@@ -1,8 +1,15 @@
 import { format, isPast, isToday } from "date-fns";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Clock, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { PRIORITY_STYLES, tagColor, type Task } from "@/lib/kanban";
+import { PRIORITY_STYLES, describeRecurrence, tagColor, type Task } from "@/lib/kanban";
+
+function fmtMinutes(m: number) {
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h}h${r}m` : `${h}h`;
+}
 
 interface Props {
   task: Task;
@@ -58,21 +65,51 @@ export function TaskCard({ task, onClick, isDragging, isOverlay }: Props) {
         </div>
       )}
 
-      {due && (
-        <div className="mt-3 flex items-center gap-1.5">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-              overdue
-                ? "bg-destructive/10 text-destructive"
-                : today
-                ? "bg-warning/15 text-warning"
-                : "bg-muted text-muted-foreground"
-            )}
-          >
-            <CalendarDays className="h-3 w-3" />
-            {format(due, "MMM d")}
-          </span>
+      {(due || task.estimated_minutes || task.actual_minutes || task.recurrence) && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {due && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+                overdue
+                  ? "bg-destructive/10 text-destructive"
+                  : today
+                  ? "bg-warning/15 text-warning"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              <CalendarDays className="h-3 w-3" />
+              {format(due, "MMM d")}
+            </span>
+          )}
+          {task.recurrence && (
+            <span
+              className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-accent-soft text-accent"
+              title={describeRecurrence(task.recurrence)}
+            >
+              <Repeat className="h-3 w-3" />
+              {task.recurrence.freq === "daily" ? "Daily" : task.recurrence.freq === "weekly" ? "Weekly" : task.recurrence.freq === "monthly" ? "Monthly" : "Yearly"}
+            </span>
+          )}
+          {task.actual_minutes ? (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+                task.estimated_minutes && task.actual_minutes > task.estimated_minutes
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-success/10 text-success"
+              )}
+            >
+              <Clock className="h-3 w-3" />
+              {fmtMinutes(task.actual_minutes)}
+              {task.estimated_minutes ? ` / ${fmtMinutes(task.estimated_minutes)}` : ""}
+            </span>
+          ) : task.estimated_minutes ? (
+            <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-muted text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {fmtMinutes(task.estimated_minutes)}
+            </span>
+          ) : null}
         </div>
       )}
     </button>

@@ -40,12 +40,17 @@ export type Database = {
       }
       tasks: {
         Row: {
+          actual_minutes: number | null
+          completed_at: string | null
           created_at: string
           description: string | null
           due_date: string | null
+          estimated_minutes: number | null
           id: string
           position: number
           priority: string
+          recurrence: Json | null
+          started_at: string | null
           status: string
           tags: string[]
           title: string
@@ -53,12 +58,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          actual_minutes?: number | null
+          completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_minutes?: number | null
           id?: string
           position?: number
           priority?: string
+          recurrence?: Json | null
+          started_at?: string | null
           status?: string
           tags?: string[]
           title: string
@@ -66,12 +76,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          actual_minutes?: number | null
+          completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_minutes?: number | null
           id?: string
           position?: number
           priority?: string
+          recurrence?: Json | null
+          started_at?: string | null
           status?: string
           tags?: string[]
           title?: string
