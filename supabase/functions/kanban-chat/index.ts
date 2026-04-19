@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
     // Snapshot the board for context
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("id, title, description, status, priority, tags, due_date")
+      .select("id, title, description, status, priority, tags, due_date, estimated_minutes, actual_minutes, recurrence")
       .eq("user_id", userId)
       .order("position");
     const boardContext = `Current board snapshot (${tasks?.length ?? 0} tasks):\n${JSON.stringify(tasks ?? [], null, 2)}`;
