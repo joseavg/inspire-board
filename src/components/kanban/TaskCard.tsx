@@ -1,8 +1,15 @@
 import { format, isPast, isToday } from "date-fns";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Clock, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { PRIORITY_STYLES, tagColor, type Task } from "@/lib/kanban";
+import { PRIORITY_STYLES, describeRecurrence, tagColor, type Task } from "@/lib/kanban";
+
+function fmtMinutes(m: number) {
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h}h${r}m` : `${h}h`;
+}
 
 interface Props {
   task: Task;
