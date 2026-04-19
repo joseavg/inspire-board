@@ -47,7 +47,7 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
       if (error) {
         toast.error("Could not load tasks");
       } else {
-        setTasks((data ?? []) as Task[]);
+        setTasks(((data ?? []) as unknown) as Task[]);
       }
       setLoading(false);
     })();
