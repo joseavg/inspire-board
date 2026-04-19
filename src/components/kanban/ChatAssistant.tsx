@@ -117,6 +117,55 @@ export function ChatAssistant({ onTasksChanged }: Props) {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
+      const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        if (blob.size === 0) { setTranscribing(false); return; }
+        try {
+          setTranscribing(true);
+          const buf = await blob.arrayBuffer();
+          const bytes = new Uint8Array(buf);
+          let bin = "";
+          const chunk = 0x8000;
+          for (let i = 0; i < bytes.length; i += chunk) {
+            bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+          }
+          const base64 = btoa(bin);
+          const { data, error } = await supabase.functions.invoke("transcribe-voice", {
+            body: { audio: base64, mimeType: mr.mimeType || "audio/webm" },
+          });
+          if (error) throw error;
+          const text = (data as { text?: string })?.text?.trim();
+          if (text) setInput((p) => (p ? p + " " : "") + text);
+          else toast.info("Didn't catch that — try again");
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Transcription failed");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch {
+      toast.error("Microphone access denied");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  };
+
   return (
     <>
       {/* Floating launcher */}
