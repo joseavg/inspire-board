@@ -249,6 +249,8 @@ export function KanbanBoard({ userId, onBoardChange }: Props) {
       priority: values.priority,
       tags: values.tags,
       due_date: values.due_date ? values.due_date.toISOString() : null,
+      estimated_minutes: values.estimated_minutes,
+      recurrence: (values.recurrence as unknown) as never,
     };
     if (editingTask) {
       const { error } = await supabase.from("tasks").update(payload).eq("id", editingTask.id);
